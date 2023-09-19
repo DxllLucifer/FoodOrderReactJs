@@ -6,7 +6,6 @@ export default function MealItemForm(props) {
   const amountInputRef = useRef();
 
   const submitHandler = event =>{
-    debugger
     event.preventDefault();
     console.log(amountInputRef)
     const enterAmount = amountInputRef.current.value;
