@@ -8,6 +8,8 @@ import Checkout from './Checkout';
 export default function Cart(props) {
     const cartCtx = useContext(CartContext)
     const [isCheckout, setIsCheckout] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [didSubmit, setDidSubmit] = useState(false)
     
     const totalAmount = cartCtx.totalAmount.toFixed(2)
     const hasItems = cartCtx.items.length > 0
@@ -22,15 +24,18 @@ export default function Cart(props) {
     const orderHandler = ()=>{
       setIsCheckout(true)
     }
-    const submitOrderHandler = (userData)=>{
-      fetch('https://food-order-webapp-default-rtdb.asia-southeast1.firebasedatabase.app/Orders.json',{
+    const submitOrderHandler = async (userData)=>{
+      setIsSubmitting(true);
+      await fetch('https://food-order-webapp-default-rtdb.asia-southeast1.firebasedatabase.app/Orders.json',{
         method:'POST',
         body:JSON.stringify({
           user:userData,
           orderdItem:cartCtx.items
         }),
-
       })
+      setIsSubmitting(false);
+      setDidSubmit(true);
+      cartCtx.clearCart();
     }
     const ModalAction = <div className={classes.actions}>
             <button className={classes['button--alt']} onClick={props.onHideCart} >Close</button>
@@ -52,16 +57,27 @@ export default function Cart(props) {
       ))}
       </ul>
       );
-
-  return (
-    <Modal onHideCart= {props.onHideCart}>
-        {cartItem}
+    const cartModelContent = <>
+    {cartItem}
         <div className={classes.total}>
             <span>totalAmount</span>
             <span>₹ {totalAmount}</span>
         </div>
         {isCheckout && <Checkout onConfirm={submitOrderHandler} onCancel={props.onHideCart} />}
         {!isCheckout && ModalAction}
+    </>   
+    const isSubmittingModelContent = <p>Sending Order Data...</p>
+    const didSubmitModelContent = <>
+    <p>Successfully sent the order!</p>
+    <div className={classes.actions}>
+          <button className={classes.button} onClick={props.onHideCart} >Close</button>
+    </div>
+    </>
+  return (
+    <Modal onHideCart= {props.onHideCart}>
+        {!isSubmitting && !didSubmit && cartModelContent}
+        {isSubmitting && isSubmittingModelContent}
+        {!isSubmitting && didSubmit && didSubmitModelContent}
         
     </Modal>
   )
